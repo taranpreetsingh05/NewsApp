@@ -1,0 +1,71 @@
+{
+  "status": "ok",
+  "totalResults": 4,
+  "articles": [
+    {
+      "source": {
+        "id": "cbc-news",
+        "name": "CBC News"
+      },
+      "author": "CBC News",
+      "title": "Ottawa&#x27;s big bet on world&#x27;s largest cricket farm ran into a simple problem: the &#x27;yuck factor&#x27;",
+      "description": null,
+      "url": "http://www.cbc.ca/news/canada/canada-aspire-food-cricket-farm-9.7136152",
+      "urlToImage": "null",
+      "publishedAt": "2026-03-29T12:07:04.8148285Z",
+      "content": null
+    },
+    {
+      "source": {
+        "id": "google-news-ca",
+        "name": "Google News (Canada)"
+      },
+      "author": null,
+      "title": "What the collapse of world's largest cricket farm reveals about hype, markets and public money - CBC",
+      "description": "What the collapse of world's largest cricket farm reveals about hype, markets and public money  CBC",
+      "url": "https://access.workspace.google.com/ServiceNotAllowed",
+      "urlToImage": "null",
+      "publishedAt": "2026-03-29T08:00:00+00:00",
+      "content": "We are sorry, but you do not have access to Google News. Some reasons why you may not have access: \r\n\u003Cul\u003E\u003Cli\u003EYour account is managed by an organization that has this service turned off for its users.… [+306 chars]"
+    },
+    {
+      "source": {
+        "id": "espn-cric-info",
+        "name": "ESPN Cric Info"
+      },
+      "author": null,
+      "title": "PCB hands Umar Akmal three-year ban from all cricket | ESPNcricinfo.com",
+      "description": "Penalty after the batsman pleaded guilty to not reporting corrupt approaches | ESPNcricinfo.com",
+      "url": "http://www.espncricinfo.com/story/_/id/29103103/pcb-hands-umar-akmal-three-year-ban-all-cricket",
+      "urlToImage": "https://a4.espncdn.com/combiner/i?img=%2Fi%2Fcricket%2Fcricinfo%2F1099495_800x450.jpg",
+      "publishedAt": "2020-04-27T11:41:47Z",
+      "content": "Umar Akmal's troubled cricket career has hit its biggest roadblock yet, with the PCB handing him a ban from all representative cricket for three years after he pleaded guilty of failing to report det… [+1506 chars]"
+    },
+    {
+      "source": {
+        "id": "espn-cric-info",
+        "name": "ESPN Cric Info"
+      },
+      "author": null,
+      "title": "What we learned from watching the 1992 World Cup final in full again | ESPNcricinfo.com",
+      "description": "Wides, lbw calls, swing - plenty of things were different in white-ball cricket back then | ESPNcricinfo.com",
+      "url": "http://www.espncricinfo.com/story/_/id/28970907/learned-watching-1992-world-cup-final-full-again",
+      "urlToImage": "https://a4.espncdn.com/combiner/i?img=%2Fi%2Fcricket%2Fcricinfo%2F1219926_1296x729.jpg",
+      "publishedAt": "2020-03-30T15:26:05Z",
+      "content": "Last week, we at ESPNcricinfo did something we have been thinking of doing for eight years now: pretend-live ball-by-ball commentary for a classic cricket match. We knew the result, yes, but we tried… [+6823 chars]"
+    }
+  ]
+}
+
+
+
+<Route path="/Bussiness"><News pageSize={5} country="us" category="general" />
+<Route path="/Entertainment"><News pageSize={5} country="us" category="general" />
+<Route path="/General"><News pageSize={5} country="us" category="general" />
+<Route path="/Health"><News pageSize={5} country="us" category="general" />
+<Route path="/Sciencesports"><News pageSize={5} country="us" category="general" />
+<Route path="/Tehnology"><News pageSize={5} country="us" category="general" />
+
+
+
+<Route path="/bussiness"><News pageSize={5} country="us" category="general" />
