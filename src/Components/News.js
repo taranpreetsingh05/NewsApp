@@ -1,92 +1,88 @@
-import React, { Component } from "react";
+import React,{useEffect,useState} from "react";
 import NewsItem from "./NewsItem.js";
 import Spinner from "./Spinner.js";
 import PropTypes from "prop-types";
 import InfiniteScroll from "react-infinite-scroll-component";
-export class News extends Component {
-  articles = [];
-  static defaultProps = {//if parent does not pass any props then these will be used as default
-    country: "us",
-    pageSize: 8,
-    category: "general",
-  };
-  static propTypes = {//it defines the data type of the input of the prop to be expexted 
-    country: PropTypes.string,
-    pageSize: PropTypes.number,
-    category: PropTypes.string,
-  };
-  capitalizeFirstLetter = (string) => {
+const News = (props)=>{
+ const [articles,setArticles]= useState([])
+ const [loading,setLoading]= useState(true)
+ const [page,setPage]= useState(1)
+ const [totalResults,setTotalResults]= useState(0)
+ const capitalizeFirstLetter = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
-  constructor(props) {
-    super(props);//parent is component and to use 'this.xyz' u have to inherit the methods of the parent
-    this.state = {
-      articles: this.articles,
-      loading: false,
-      page: 1,
-      totalResults: 0
-    };
-    document.title = `${this.capitalizeFirstLetter(this.props.category)}-NewsMonkey`;
+  // constructor(props) {
+  //   super(props);//parent is component and to use 'this.xyz' u have to inherit the methods of the parent
+    
+  //   //document.title = `${this.capitalizeFirstLetter(props.category)}-NewsMonkey`;
+  // }
+
+  const updateNews=async ()=> {
+    props.setProgress(10);
+    const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=ce618c2f5bed4b9c8d09db3ab30a10ba&page=${page}&pageSize=${props.pageSize}`;
+   setLoading(true)
+    let data = await fetch(url);
+    props.setProgress(30);
+    let parsedData = await data.json();
+    props.setProgress(70);
+    setArticles(parsedData.articles || [])
+    setTotalResults(parsedData.totalResults)
+    setLoading(false)
+    props.setProgress(100);
+  }
+  useEffect(()=>{
+    updateNews();
+  },[])
+  
+   const handleNext = async () => {
+    setPage(page + 1)
+    updateNews();
+  };
+   const handlePrev = async () => {
+    setPage(page-1)
+    updateNews();
+  };
+ const fetchMoreData = async () => {
+  if (loading) return;
+
+  const nextPage = page + 1;
+  setLoading(true);
+
+  const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.apiKey}&page=${nextPage}&pageSize=${props.pageSize}`;
+
+  let data = await fetch(url);
+  let parsedData = await data.json();
+
+  // IMPORTANT FIX
+  if (!parsedData.articles || parsedData.articles.length === 0) {
+    setLoading(false);
+    return;
   }
 
-  async updateNews() {
-    this.props.setProgress(10);
-    const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=ce618c2f5bed4b9c8d09db3ab30a10ba&page=${this.state.page}&pageSize=${this.props.pageSize}`;
-    this.setState({ loading: true });
-    let data = await fetch(url);
-    this.props.setProgress(30);
-    let parsedData = await data.json();
-    this.props.setProgress(70);
-    this.setState({
-      articles: parsedData.articles || [],
-      totalResults: parsedData.totalResults,
-      loading: false
-    });
-    this.props.setProgress(100);
-  }
-  async componentDidMount() {
-    this.updateNews();
-  }
-  handleNext = async () => {
-    this.setState({ page: this.state.page + 1 });
-    this.updateNews();
-  };
-  handlePrev = async () => {
-    this.setState({ page: this.state.page - 1 });
-    this.updateNews();
-  };
-  fetchMoreData = async () => {
-    if (this.state.loading) {
-      return;}
-    this.setState({ page: this.state.page + 1 });
-    const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${this.props.apiKey}&page=${this.state.page + 1}&pageSize=${this.props.pageSize}`;
-    this.setState({ loading: true });
-    let data = await fetch(url);
-    let parsedData = await data.json();
-    this.setState({
-      page: this.state.page + 1,
-      articles: this.state.articles.concat(parsedData.articles),
-      totalResults: parsedData.totalResults,
-      loading:false
-    });
-  };
-  render() {
+  setPage(nextPage);
+  setArticles((prevArticles) =>
+    prevArticles.concat(parsedData.articles)
+  );
+  setTotalResults(parsedData.totalResults);
+  setLoading(false);
+};
     return (
       <div className="container my-3">
         <h1 className="text-center">
-          NewsMonkey-Top {this.capitalizeFirstLetter(this.props.category)}
-          headlines
+          NewsMonkey-Top {capitalizeFirstLetter(props.category)}
+           <br></br>headlines
         </h1>
-        {/* {this.state.loading && <Spinner />} */}
+        {/* {loading && <Spinner />} */}
         <InfiniteScroll
-          dataLength={this.state.articles.length || []}
-          next={this.fetchMoreData}
-          hasMore={this.state.articles.length !== this.state.totalResults}
+          dataLength={articles.length}
+          next={fetchMoreData}
+          hasMore={articles.length < Math.min(totalResults, 100)}
           loader={<Spinner />}
+  
         >
           <div className="container">
             <div className="row">
-              {this.state.articles.map((ele) => {
+              {articles.map((ele) => {
                 return (
                   <div className="col md-4" key={ele.url}>
                     <NewsItem
@@ -109,7 +105,7 @@ export class News extends Component {
         {/* <div className="container d-flex justify-content-between">
           <button
             type="button"
-            disabled={this.state.page <= 1}
+            disabled={page <= 1}
             className="btn btn-dark"
             onClick={this.handlePrev}
           >
@@ -117,8 +113,8 @@ export class News extends Component {
           </button>
           <button
             disabled={
-              this.state.page + 1 >
-              Math.ceil(this.state.totalResults / this.props.pageSize)
+              page + 1 >
+              Math.ceil(totalResults / props.pageSize)
             }
             type="button"
             className="btn btn-dark"
@@ -130,7 +126,17 @@ export class News extends Component {
         </div> */}
       </div>
     );
-  }
+  
 }
-
+News.defaultProps = {//if parent does not pass any props then these will be used as default
+    country: "us",
+    pageSize: 8,
+    category: "general",
+  };
+  News.propTypes = {//it defines the data type of the input of the prop to be expexted 
+    country: PropTypes.string,
+    pageSize: PropTypes.number,
+    category: PropTypes.string,
+  };
 export default News;
+//hello hi 
