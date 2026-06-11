@@ -31,6 +31,7 @@ const News = (props)=>{
     props.setProgress(100);
   }
   useEffect(()=>{
+     document.title = `${capitalizeFirstLetter(props.category)}-NewsMonkey`;
     updateNews();
   },[])
   
@@ -58,7 +59,7 @@ setPage(page+1)
     return;
   }
 
-  setPage(nextPage);
+  setPage(page);
   setArticles((prevArticles) =>
     prevArticles.concat(parsedData.articles)
   );
