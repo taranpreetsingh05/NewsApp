@@ -1,7 +1,7 @@
 import React from "react";
 
 const NewsItem=(props)=>{
-    let { title, description, imageUrl, newsUrl, author, date,source} = props;
+    let { title, description, imageUrl, newsUrl, date,source} = props;
     return (
       <div className="my-3">
         <div className="card" style={{ width: "18rem" }}>
@@ -17,7 +17,7 @@ const NewsItem=(props)=>{
             <p className="card-text">{description}...</p>
             <p className="card-text">
               <small>
-                By {author ? author : "unknown"} on{" "}
+               Published on{" "}
                 {new Date(date).toGMTString()}
               </small>
             </p>

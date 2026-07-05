@@ -1,84 +1,125 @@
-import React,{useEffect,useState} from "react";
+import React, { useEffect, useState } from "react";
 import NewsItem from "./NewsItem.js";
 import Spinner from "./Spinner.js";
 import PropTypes from "prop-types";
 import InfiniteScroll from "react-infinite-scroll-component";
-const News = (props)=>{
- const [articles,setArticles]= useState([])
- const [loading,setLoading]= useState(true)
- const [page,setPage]= useState(1)
- const [totalResults,setTotalResults]= useState(0)
- const capitalizeFirstLetter = (string) => {
+
+const News = (props) => {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [error, setError] = useState(null);
+
+  const API_KEY = process.env.REACT_APP_GNEWS_API_KEY;
+
+  const capitalizeFirstLetter = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
-  // constructor(props) {
-  //   super(props);//parent is component and to use 'this.xyz' u have to inherit the methods of the parent
-    
-  //   //document.title = `${this.capitalizeFirstLetter(props.category)}-NewsMonkey`;
-  // }
 
-  const updateNews=async ()=> {
+  const updateNews = async () => {
     props.setProgress(10);
-    const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=ce618c2f5bed4b9c8d09db3ab30a10ba&page=${page}&pageSize=${props.pageSize}`;
-   setLoading(true)
-    let data = await fetch(url);
-    props.setProgress(30);
-    let parsedData = await data.json();
-    props.setProgress(70);
-    setArticles(parsedData.articles || [])
-    setTotalResults(parsedData.totalResults)
-    setLoading(false)
-    props.setProgress(100);
-  }
-  useEffect(()=>{
-     document.title = `${capitalizeFirstLetter(props.category)}-NewsMonkey`;
-    updateNews();
-  },[])
-  
-   const handleNext = async () => {
-    setPage(page + 1)
-    updateNews();
+    setError(null);
+    setLoading(true);
+    setPage(1);
+
+    const url = `https://gnews.io/api/v4/top-headlines?category=${props.category}&lang=en&country=us&max=${props.pageSize}&page=1&apikey=${API_KEY}`;
+
+    try {
+      let data = await fetch(url);
+      props.setProgress(30);
+
+      if (!data.ok) {
+        if (data.status === 429) {
+          setError("Rate limit reached. Please try again in a few minutes.");
+        } else {
+          setError(`Failed to load news (error ${data.status}).`);
+        }
+        setArticles([]);
+        setLoading(false);
+        props.setProgress(100);
+        return;
+      }
+
+      let parsedData = await data.json();
+      props.setProgress(70);
+      setArticles(parsedData.articles || []);
+      setTotalResults(parsedData.totalArticles || 0);
+      setLoading(false);
+      props.setProgress(100);
+    } catch (err) {
+      setError("Network error. Please check your connection and try again.");
+      setArticles([]);
+      setLoading(false);
+      props.setProgress(100);
+    }
   };
-   const handlePrev = async () => {
-    setPage(page-1)
+
+  useEffect(() => {
+    document.title = `${capitalizeFirstLetter(props.category)}-NewsMonkey`;
     updateNews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.category]);
+
+  const fetchMoreData = async () => {
+    if (loading || error) return;
+
+    setLoading(true);
+    const nextPage = page + 1;
+    const url = `https://gnews.io/api/v4/top-headlines?category=${props.category}&lang=en&country=us&max=${props.pageSize}&page=${nextPage}&apikey=${API_KEY}`;
+
+    try {
+      let data = await fetch(url);
+      console.log("Status:", data.status);
+console.log("URL:", url);
+
+      if (!data.ok) {
+        setError(
+          data.status === 429
+            ? "Rate limit reached. Showing what we have for now."
+            : `Failed to load more news (error ${data.status}).`
+        );
+        setLoading(false);
+        return;
+      }
+
+      let parsedData = await data.json();
+console.log(parsedData);
+      if (!parsedData.articles || parsedData.articles.length === 0) {
+        setLoading(false);
+        return;
+      }
+
+      setPage(nextPage);
+      setArticles((prevArticles) => prevArticles.concat(parsedData.articles));
+      setTotalResults(parsedData.totalArticles || 0);
+      setLoading(false);
+    } catch (err) {
+      setError("Network error while loading more articles.");
+      setLoading(false);
+    }
   };
- const fetchMoreData = async () => {
-  if (loading) return;
 
-  setLoading(true);
+  return (
+    <div className="container my-3">
+      <h1 className="text-center">
+        NewsMonkey-Top {capitalizeFirstLetter(props.category)}
+        <br />
+        headlines
+      </h1>
 
-  const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.apiKey}&page=${page+1}&pageSize=${props.pageSize}`;
-setPage(page+1)
-  let data = await fetch(url);
-  let parsedData = await data.json();
+      {error && (
+        <div className="alert alert-warning text-center" role="alert">
+          {error}
+        </div>
+      )}
 
-  // IMPORTANT FIX
-  if (!parsedData.articles || parsedData.articles.length === 0) {
-    setLoading(false);
-    return;
-  }
-
-  setPage(page);
-  setArticles((prevArticles) =>
-    prevArticles.concat(parsedData.articles)
-  );
-  setTotalResults(parsedData.totalResults);
-  setLoading(false);
-};
-    return (
-      <div className="container my-3">
-        <h1 className="text-center">
-          NewsMonkey-Top {capitalizeFirstLetter(props.category)}
-           <br></br>headlines
-        </h1>
-        {/* {loading && <Spinner />} */}
+      {!error && (
         <InfiniteScroll
           dataLength={articles.length}
           next={fetchMoreData}
           hasMore={articles.length < Math.min(totalResults, 100)}
           loader={<Spinner />}
-  
         >
           <div className="container">
             <div className="row">
@@ -90,11 +131,11 @@ setPage(page+1)
                       description={
                         ele.description ? ele.description.slice(0, 70) : ""
                       }
-                      imageUrl={ele.urlToImage}
+                      imageUrl={ele.image}
                       newsUrl={ele.url}
-                      author={ele.author}
+                      
                       date={ele.publishedAt}
-                      source={ele.source.name}
+                      source={ele.source?.name || "Unknown"}
                     />
                   </div>
                 );
@@ -102,41 +143,21 @@ setPage(page+1)
             </div>
           </div>
         </InfiniteScroll>
-        {/* <div className="container d-flex justify-content-between">
-          <button
-            type="button"
-            disabled={page <= 1}
-            className="btn btn-dark"
-            onClick={this.handlePrev}
-          >
-            &laquo; previous
-          </button>
-          <button
-            disabled={
-              page + 1 >
-              Math.ceil(totalResults / props.pageSize)
-            }
-            type="button"
-            className="btn btn-dark"
-            onClick={this.handleNext}
-          >
-            {" "}
-            next &raquo;{" "}
-          </button>
-        </div> */}
-      </div>
-    );
-  
-}
-News.defaultProps = {//if parent does not pass any props then these will be used as default
-    country: "us",
-    pageSize: 8,
-    category: "general",
-  };
-  News.propTypes = {//it defines the data type of the input of the prop to be expexted 
-    country: PropTypes.string,
-    pageSize: PropTypes.number,
-    category: PropTypes.string,
-  };
+      )}
+    </div>
+  );
+};
+
+News.defaultProps = {
+  country: "us",
+  pageSize: 8,
+  category: "general",
+};
+
+News.propTypes = {
+  country: PropTypes.string,
+  pageSize: PropTypes.number,
+  category: PropTypes.string,
+};
+
 export default News;
-//hello hi 
